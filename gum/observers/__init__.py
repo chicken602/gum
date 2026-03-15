@@ -11,4 +11,4 @@ from .screen import Screen
 # Fix: upgrade ics to >=0.8 and update calendar.py for the new API.
 # from .calendar import Calendar
 
-__all__ = ["Observer", "Screen", "Calendar"] 
+__all__ = ["Observer", "Screen"] 

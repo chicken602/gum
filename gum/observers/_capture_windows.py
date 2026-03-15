@@ -33,13 +33,27 @@ class MONITORINFOEXW(ctypes.Structure):
 user32 = ctypes.windll.user32
 kernel32 = ctypes.windll.kernel32
 psapi = ctypes.windll.psapi
+shcore = None
+try:
+    shcore = ctypes.windll.shcore
+except (AttributeError, OSError):
+    pass
+
+# Set process DPI awareness to ensure physical coordinates
+# 1 = PROCESS_SYSTEM_DPI_AWARE, 2 = PROCESS_PER_MONITOR_DPI_AWARE
+try:
+    if shcore and hasattr(shcore, 'SetProcessDpiAwareness'):
+        shcore.SetProcessDpiAwareness(1)
+    else:
+        user32.SetProcessDPIAware()
+except Exception:
+    pass
 
 from ._capture_base import CaptureBase
 
 class CaptureWindows(CaptureBase):
     """
     Windows-specific screen capture and window management.
-    (Placeholder implementation)
     """
 
     def _get_window_owner(self, hwnd: int) -> str:

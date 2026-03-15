@@ -25,6 +25,7 @@ dependencies = [
     "beautifulsoup4",
     "ics",
     "tatsu<5.0",
+    "greenlet",
     "persist-queue",
     "mkdocs>=1.5.0",
     "mkdocs-material>=9.0.0",

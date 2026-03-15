@@ -5,6 +5,7 @@ from __future__ import annotations
 
 # — Standard library —
 import base64
+import ctypes
 import logging
 import os
 import time
@@ -58,7 +59,7 @@ class Screen(Observer):
     """
 
     _CAPTURE_FPS: int = 10
-    _DEBOUNCE_SEC: int = 2
+    _DEBOUNCE_SEC: int = int(os.getenv("DEBOUNCE_SEC", "2"))
 
     # ─────────────────────────────── construction
     def __init__(
@@ -212,14 +213,18 @@ class Screen(Observer):
                     return
 
                 ev = self._pending_event
-                aft = await asyncio.to_thread(sct.grab, mons[ev["mon_idx"]])
-
-                bef_path = await self._save_frame(ev["before"], "before")
-                aft_path = await self._save_frame(aft, "after")
-                await self._process_and_emit(bef_path, aft_path)
-
-                log.info(f"{ev['type']} captured on monitor {ev['mon_idx']}")
-                self._pending_event = None
+                
+                try:
+                    # mss.grab is fast enough to run in-thread (~10ms) and avoid thread-local storage issues
+                    aft = sct.grab(mons[ev["mon_idx"]])
+                    bef_path = await self._save_frame(ev["before"], "before")
+                    aft_path = await self._save_frame(aft, "after")
+                    await self._process_and_emit(bef_path, aft_path)
+                    log.info(f"{ev['type']} captured on monitor {ev['mon_idx']}")
+                except Exception:
+                    pass
+                finally:
+                    self._pending_event = None
 
             def debounce_flush():
                 asyncio.create_task(flush())
@@ -259,9 +264,13 @@ class Screen(Observer):
                 t0 = time.time()
 
                 for idx, m in enumerate(mons):
-                    frame = await asyncio.to_thread(sct.grab, m)
-                    async with self._frame_lock:
-                        self._frames[idx] = frame
+                    try:
+                        # mss.grab is fast enough to run in-thread (~10ms) and avoid thread-local storage issues
+                        frame = sct.grab(m)
+                        async with self._frame_lock:
+                            self._frames[idx] = frame
+                    except Exception:
+                        pass
 
                 dt = time.time() - t0
                 await asyncio.sleep(max(0, (1 / CAP_FPS) - dt))
