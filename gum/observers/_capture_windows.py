@@ -77,7 +77,7 @@ class CaptureWindows(CaptureBase):
         return ""
 
     def get_monitor_geometries(self) -> List[Dict[str, int]]:
-        """Placeholder for Windows monitor geometry discovery."""
+        """Returns a list of monitor geometries using Win32 API."""
         monitors = []
 
         def callback(hMonitor, hdcMonitor, lprcMonitor, dwData):
@@ -104,7 +104,7 @@ class CaptureWindows(CaptureBase):
         return monitors
 
     def is_any_app_visible(self, app_names: List[str]) -> bool:
-        """Placeholder for Windows app visibility check."""
+        """Determines app visibility by enumerating onscreen windows."""
         if not app_names:
             return False
             
@@ -133,7 +133,7 @@ class CaptureWindows(CaptureBase):
         return found[0]
 
     def get_monitor_at_point(self, x: float, y: float) -> Optional[Dict[str, int]]:
-        """Placeholder for Windows monitor-at-point discovery."""
+        """Finds the monitor geometry containing the point using Win32 API."""
         point = ctypes.wintypes.POINT(int(x), int(y))
         hMonitor = user32.MonitorFromPoint(point, 0) # MONITOR_DEFAULTTONULL
         
@@ -150,7 +150,7 @@ class CaptureWindows(CaptureBase):
         return None
 
     def get_window_list(self) -> List[Dict]:
-        """Placeholder for Windows window metadata retrieval."""
+        """List onscreen windows using Win32 API."""
         windows = []
 
         def callback(hwnd, lparam):

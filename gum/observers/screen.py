@@ -5,7 +5,6 @@ from __future__ import annotations
 
 # — Standard library —
 import base64
-import ctypes
 import logging
 import os
 import time
@@ -221,8 +220,8 @@ class Screen(Observer):
                     aft_path = await self._save_frame(aft, "after")
                     await self._process_and_emit(bef_path, aft_path)
                     log.info(f"{ev['type']} captured on monitor {ev['mon_idx']}")
-                except Exception:
-                    pass
+                except Exception as exc:
+                    log.debug(f"Failed to capture or process interaction: {exc}")
                 finally:
                     self._pending_event = None
 
@@ -269,8 +268,8 @@ class Screen(Observer):
                         frame = sct.grab(m)
                         async with self._frame_lock:
                             self._frames[idx] = frame
-                    except Exception:
-                        pass
+                    except Exception as exc:
+                        log.debug(f"Main capture loop failed for monitor {idx}: {exc}")
 
                 dt = time.time() - t0
                 await asyncio.sleep(max(0, (1 / CAP_FPS) - dt))
